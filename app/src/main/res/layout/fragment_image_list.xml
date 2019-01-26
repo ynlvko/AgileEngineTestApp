@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@android:color/black">
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/refresh"
@@ -20,12 +21,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="@string/message_empty_list"
-        android:visibility="gone" />
-
-    <ProgressBar
-        android:id="@+id/progressView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
+        android:textColor="@android:color/white"
         android:visibility="gone" />
 </FrameLayout>
