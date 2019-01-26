@@ -2,24 +2,58 @@ package com.agileengine.ynlvko_test.images
 
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.*
+import com.agileengine.ynlvko_test.core.ServiceLocator
+import io.reactivex.Scheduler
+import io.reactivex.disposables.CompositeDisposable
+import java.util.concurrent.TimeUnit
 
-class ImagesViewModel : ViewModel() {
+class ImagesViewModel(
+    private val imagesRepo: ImagesRepository,
+    private val workerScheduler: Scheduler,
+    private val resultScheduler: Scheduler
+) : ViewModel() {
     private val data = MutableLiveData<List<Image>>()
     private val progress = MutableLiveData<Boolean>()
 
     fun data(): LiveData<List<Image>> = data
     fun progress(): LiveData<Boolean> = progress
 
+    private val disposables = CompositeDisposable()
+    private var page = 0
+
     init {
-        data.value = listOf()
+        fetchNextPage()
+    }
+
+    fun fetchNextPage() {
         progress.value = true
+        disposables.add(
+            imagesRepo.getImages(++page)
+                .delay(2000, TimeUnit.MILLISECONDS)
+                .subscribeOn(workerScheduler)
+                .observeOn(resultScheduler)
+                .subscribe(
+                    {
+                        progress.value = false
+                        data.value = it
+                    },
+                    { it.printStackTrace() }
+                ))
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        disposables.dispose()
     }
 
     companion object {
         fun getInstance(activity: FragmentActivity): ImagesViewModel {
             return ViewModelProviders.of(activity, object : ViewModelProvider.Factory {
                 override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-                    return ImagesViewModel() as T
+                    val imagesRepo = ServiceLocator.getInstance().getImagesRepository()
+                    val workerScheduler = ServiceLocator.getInstance().getWorkerScheduler()
+                    val resultScheduler = ServiceLocator.getInstance().getResultScheduler()
+                    return ImagesViewModel(imagesRepo, workerScheduler, resultScheduler) as T
                 }
             })[ImagesViewModel::class.java]
         }
