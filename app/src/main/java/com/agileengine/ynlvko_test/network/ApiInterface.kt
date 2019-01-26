@@ -19,6 +19,6 @@ interface ApiInterface {
     @GET("images/{imageId}")
     fun getImageById(
         @Header("Authorization") bearerToken: String,
-        @Path("imageId") imageId: Int
+        @Path("imageId") imageId: String
     ): Single<Image>
 }

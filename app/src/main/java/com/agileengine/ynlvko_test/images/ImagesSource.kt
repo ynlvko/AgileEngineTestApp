@@ -6,7 +6,7 @@ import io.reactivex.Flowable
 
 interface ImagesSource {
     fun getImages(page: Int): Flowable<List<Image>>
-    fun getImageById(imageId: Int): Flowable<Image>
+    fun getImageById(imageId: String): Flowable<Image>
 }
 
 class DefaultImagesSource(
@@ -26,7 +26,7 @@ class DefaultImagesSource(
             }
     }
 
-    override fun getImageById(imageId: Int): Flowable<Image> {
+    override fun getImageById(imageId: String): Flowable<Image> {
         return getToken()
             .flatMap { token ->
                 apiInterface.getImageById(getAuthorizationHeader(token), imageId).toFlowable()

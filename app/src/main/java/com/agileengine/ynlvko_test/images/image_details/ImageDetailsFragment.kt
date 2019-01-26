@@ -9,19 +9,18 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.agileengine.ynlvko_test.R
-import com.agileengine.ynlvko_test.images.ImagesViewModel
 import com.squareup.picasso.Picasso
 import kotlinx.android.synthetic.main.fragment_image_details.*
 
 class ImageDetailsFragment : Fragment() {
     private var imagePosition = -1
-    private lateinit var viewModel: ImagesViewModel
+    private lateinit var viewModel: ImageDetailsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         imagePosition = arguments?.getInt(ArgImagePosition)
             ?: throw IllegalStateException("Can't load ImageId for ImageDetailsFragment")
-        viewModel = ImagesViewModel.getInstance(requireActivity())
+        viewModel = ImageDetailsViewModel.getInstance(this, imagePosition)
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -30,8 +29,8 @@ class ImageDetailsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.data().observe(this, Observer {
-            Picasso.get().load(it[imagePosition].croppedUrl).into(ivImage)
+        viewModel.data().observe(this, Observer { image ->
+            Picasso.get().load(image.fullUrl).into(ivImage)
         })
         fabShare.setOnClickListener(::share)
     }
@@ -39,7 +38,7 @@ class ImageDetailsFragment : Fragment() {
     private fun share(v: View) {
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, viewModel.data().value?.get(imagePosition)?.croppedUrl)
+            putExtra(Intent.EXTRA_TEXT, viewModel.data().value?.fullUrl)
             type = "text/plain"
         }
         if (requireActivity().packageManager
