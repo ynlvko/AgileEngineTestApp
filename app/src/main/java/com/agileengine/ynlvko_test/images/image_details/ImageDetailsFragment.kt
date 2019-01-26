@@ -1,5 +1,7 @@
 package com.agileengine.ynlvko_test.images.image_details
 
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -31,6 +33,20 @@ class ImageDetailsFragment : Fragment() {
         viewModel.data().observe(this, Observer {
             Picasso.get().load(it[imagePosition].url).into(ivImage)
         })
+        fabShare.setOnClickListener(::share)
+    }
+
+    private fun share(v: View) {
+        val sendIntent: Intent = Intent().apply {
+            action = Intent.ACTION_SEND
+            putExtra(Intent.EXTRA_TEXT, viewModel.data().value?.get(imagePosition)?.url)
+            type = "text/plain"
+        }
+        if (requireActivity().packageManager
+                .resolveActivity(sendIntent, PackageManager.MATCH_DEFAULT_ONLY) != null
+        ) {
+            startActivity(sendIntent)
+        }
     }
 
     companion object {
