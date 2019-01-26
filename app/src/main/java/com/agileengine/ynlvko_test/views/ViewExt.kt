@@ -1,4 +1,4 @@
-package com.agileengine.ynlvko_test
+package com.agileengine.ynlvko_test.views
 
 import android.view.View
 

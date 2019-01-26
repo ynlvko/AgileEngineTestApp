@@ -10,9 +10,9 @@ import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
 import com.agileengine.ynlvko_test.Navigator
 import com.agileengine.ynlvko_test.R
-import com.agileengine.ynlvko_test.gone
+import com.agileengine.ynlvko_test.views.gone
 import com.agileengine.ynlvko_test.images.ImagesViewModel
-import com.agileengine.ynlvko_test.visible
+import com.agileengine.ynlvko_test.views.visible
 import kotlinx.android.synthetic.main.fragment_image_list.*
 
 class ImageListFragment : Fragment() {
