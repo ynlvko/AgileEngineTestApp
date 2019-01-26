@@ -43,6 +43,8 @@ class ImageItemVH(itemView: View) : RecyclerView.ViewHolder(itemView) {
     private val imageView = itemView.findViewById<ImageView>(R.id.ivImage)
 
     fun bind(image: Image) {
-        Picasso.get().load(image.url).into(imageView)
+        Picasso.get().load(image.croppedUrl)
+            .fit().centerCrop()
+            .into(imageView)
     }
 }

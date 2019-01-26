@@ -31,7 +31,7 @@ class ImageDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.data().observe(this, Observer {
-            Picasso.get().load(it[imagePosition].url).into(ivImage)
+            Picasso.get().load(it[imagePosition].croppedUrl).into(ivImage)
         })
         fabShare.setOnClickListener(::share)
     }
@@ -39,7 +39,7 @@ class ImageDetailsFragment : Fragment() {
     private fun share(v: View) {
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, viewModel.data().value?.get(imagePosition)?.url)
+            putExtra(Intent.EXTRA_TEXT, viewModel.data().value?.get(imagePosition)?.croppedUrl)
             type = "text/plain"
         }
         if (requireActivity().packageManager

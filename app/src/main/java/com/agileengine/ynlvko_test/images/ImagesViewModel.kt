@@ -5,7 +5,6 @@ import androidx.lifecycle.*
 import com.agileengine.ynlvko_test.core.ServiceLocator
 import io.reactivex.Scheduler
 import io.reactivex.disposables.CompositeDisposable
-import java.util.concurrent.TimeUnit
 
 class ImagesViewModel(
     private val imagesRepo: ImagesRepository,
@@ -29,7 +28,6 @@ class ImagesViewModel(
         progress.value = true
         disposables.add(
             imagesRepo.getImages(++page)
-                .delay(2000, TimeUnit.MILLISECONDS)
                 .subscribeOn(workerScheduler)
                 .observeOn(resultScheduler)
                 .subscribe(
@@ -50,9 +48,10 @@ class ImagesViewModel(
         fun getInstance(activity: FragmentActivity): ImagesViewModel {
             return ViewModelProviders.of(activity, object : ViewModelProvider.Factory {
                 override fun <T : ViewModel?> create(modelClass: Class<T>): T {
-                    val imagesRepo = ServiceLocator.getInstance().getImagesRepository()
-                    val workerScheduler = ServiceLocator.getInstance().getWorkerScheduler()
-                    val resultScheduler = ServiceLocator.getInstance().getResultScheduler()
+                    val serviceLocator = ServiceLocator.getInstance(activity)
+                    val imagesRepo = serviceLocator.getImagesRepository()
+                    val workerScheduler = serviceLocator.getWorkerScheduler()
+                    val resultScheduler = serviceLocator.getResultScheduler()
                     return ImagesViewModel(imagesRepo, workerScheduler, resultScheduler) as T
                 }
             })[ImagesViewModel::class.java]

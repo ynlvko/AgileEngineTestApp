@@ -7,16 +7,15 @@ interface ImagesRepository {
     fun getImageById(imageId: Int): Flowable<Image>
 }
 
-class DefaultImagesRepository : ImagesRepository {
-    val images = arrayListOf(
-        Image(), Image(), Image(), Image(), Image(), Image(), Image(), Image(), Image(), Image(), Image(), Image()
-    )
+class DefaultImagesRepository(
+    private val imagesSource: ImagesSource
+) : ImagesRepository {
 
     override fun getImages(page: Int): Flowable<List<Image>> {
-        return Flowable.just(images)
+        return imagesSource.getImages(page)
     }
 
     override fun getImageById(imageId: Int): Flowable<Image> {
-        return Flowable.just(images[imageId])
+        return imagesSource.getImageById(imageId)
     }
 }
