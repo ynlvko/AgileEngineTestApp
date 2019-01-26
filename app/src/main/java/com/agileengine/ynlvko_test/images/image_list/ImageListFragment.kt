@@ -8,10 +8,11 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.agileengine.ynlvko_test.Navigator
 import com.agileengine.ynlvko_test.R
-import com.agileengine.ynlvko_test.views.gone
 import com.agileengine.ynlvko_test.images.ImagesViewModel
+import com.agileengine.ynlvko_test.views.gone
 import com.agileengine.ynlvko_test.views.visible
 import kotlinx.android.synthetic.main.fragment_image_list.*
 
@@ -45,6 +46,17 @@ class ImageListFragment : Fragment() {
         viewModel.progress().observe(this, Observer { inProgress ->
             refresh.isRefreshing = inProgress
         })
+
+        rvImages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                val layoutManager = rvImages.layoutManager as? GridLayoutManager
+                    ?: throw IllegalStateException("RecyclerView's layoutManager is not GridLayoutManager")
+                val lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
+                if (lastVisiblePosition >= layoutManager.itemCount - NextPageThreshold) {
+                    viewModel.fetchNextPage()
+                }
+            }
+        })
     }
 
     private fun initAdapter(): ImageListAdapter {
@@ -68,5 +80,6 @@ class ImageListFragment : Fragment() {
         fun newInstance() = ImageListFragment()
 
         private const val SpanCount = 2
+        private const val NextPageThreshold = 2
     }
 }

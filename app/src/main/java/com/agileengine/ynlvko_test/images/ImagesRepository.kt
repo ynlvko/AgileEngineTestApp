@@ -10,9 +10,18 @@ interface ImagesRepository {
 class DefaultImagesRepository(
     private val imagesSource: ImagesSource
 ) : ImagesRepository {
+    private var lastPage = 0
+    private val imagesCache = arrayListOf<Image>()
 
     override fun getImages(page: Int): Flowable<List<Image>> {
-        return imagesSource.getImages(page)
+        if (lastPage < page) {
+            return imagesSource.getImages(page)
+                .flatMap {
+                    imagesCache.addAll(it)
+                    return@flatMap Flowable.just(imagesCache as List<Image>)
+                }
+        }
+        return Flowable.just(imagesCache as List<Image>)
     }
 
     override fun getImageById(imageId: Int): Flowable<Image> {

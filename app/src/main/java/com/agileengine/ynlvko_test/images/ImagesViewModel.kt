@@ -25,6 +25,9 @@ class ImagesViewModel(
     }
 
     fun fetchNextPage() {
+        if (progress.value == true) {
+            return
+        }
         progress.value = true
         disposables.add(
             imagesRepo.getImages(++page)
