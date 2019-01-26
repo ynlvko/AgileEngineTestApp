@@ -2,9 +2,10 @@ package com.agileengine.ynlvko_test
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.agileengine.ynlvko_test.images.image_details.ImageDetailsFragment
 import com.agileengine.ynlvko_test.images.image_list.ImageListFragment
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), Navigator {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,6 +20,14 @@ class MainActivity : AppCompatActivity() {
         val fragmentManager = supportFragmentManager
         fragmentManager.beginTransaction()
             .add(R.id.fragmentContainer, ImageListFragment.newInstance())
+            .commit()
+    }
+
+    override fun showImageDetails(imagePosition: Int) {
+        val fragmentManager = supportFragmentManager
+        fragmentManager.beginTransaction()
+            .addToBackStack(null)
+            .add(R.id.fragmentContainer, ImageDetailsFragment.newInstance(imagePosition))
             .commit()
     }
 }

@@ -1,5 +1,6 @@
 package com.agileengine.ynlvko_test.images.image_list
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -7,6 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.GridLayoutManager
+import com.agileengine.ynlvko_test.Navigator
 import com.agileengine.ynlvko_test.R
 import com.agileengine.ynlvko_test.gone
 import com.agileengine.ynlvko_test.images.ImagesViewModel
@@ -15,6 +17,12 @@ import kotlinx.android.synthetic.main.fragment_image_list.*
 
 class ImageListFragment : Fragment() {
     private lateinit var viewModel: ImagesViewModel
+    private lateinit var navigator: Navigator
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        navigator = activity as Navigator
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,9 +40,7 @@ class ImageListFragment : Fragment() {
 
     private fun initRecyclerView() {
         rvImages.adapter = initAdapter()
-        rvImages.layoutManager = GridLayoutManager(requireContext(),
-            SpanCount
-        )
+        rvImages.layoutManager = GridLayoutManager(requireContext(), SpanCount)
 
         viewModel.progress().observe(this, Observer { inProgress ->
             refresh.isRefreshing = inProgress
@@ -42,7 +48,9 @@ class ImageListFragment : Fragment() {
     }
 
     private fun initAdapter(): ImageListAdapter {
-        val adapter = ImageListAdapter()
+        val adapter = ImageListAdapter { imagePosition ->
+            navigator.showImageDetails(imagePosition)
+        }
         viewModel.data().observe(this, Observer {
             adapter.updateImages(it)
             if (it.isEmpty()) {
