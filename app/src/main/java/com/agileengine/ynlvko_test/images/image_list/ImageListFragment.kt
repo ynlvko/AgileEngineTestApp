@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.agileengine.ynlvko_test.Navigator
 import com.agileengine.ynlvko_test.R
+import com.agileengine.ynlvko_test.images.Image
 import com.agileengine.ynlvko_test.views.gone
 import com.agileengine.ynlvko_test.views.visible
 import kotlinx.android.synthetic.main.fragment_image_list.*
@@ -18,6 +19,7 @@ import kotlinx.android.synthetic.main.fragment_image_list.*
 class ImageListFragment : Fragment() {
     private lateinit var viewModel: ImageListViewModel
     private lateinit var navigator: Navigator
+    private lateinit var adapter: ImageListAdapter
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
@@ -35,16 +37,26 @@ class ImageListFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        refresh.isEnabled = false
+        initAdapter()
         initRecyclerView()
+
+        viewModel.data().observe(this, Observer { viewObject ->
+            refresh.isRefreshing = viewObject.progress
+            if (viewObject.progress) {
+                return@Observer
+            }
+            if (viewObject.error || viewObject.data == null) {
+                showError()
+            } else {
+                showData(viewObject.data)
+            }
+        })
     }
 
     private fun initRecyclerView() {
-        rvImages.adapter = initAdapter()
+        rvImages.adapter = adapter
         rvImages.layoutManager = GridLayoutManager(requireContext(), SpanCount)
-
-        viewModel.progress().observe(this, Observer { inProgress ->
-            refresh.isRefreshing = inProgress
-        })
 
         rvImages.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
@@ -58,21 +70,25 @@ class ImageListFragment : Fragment() {
         })
     }
 
-    private fun initAdapter(): ImageListAdapter {
-        val adapter = ImageListAdapter { imagePosition ->
+    private fun initAdapter() {
+        adapter = ImageListAdapter { imagePosition ->
             navigator.showImageDetails(imagePosition)
         }
-        viewModel.data().observe(this, Observer {
-            adapter.updateImages(it)
-            if (it.isEmpty()) {
-                rvImages.gone()
-                tvEmptyView.visible()
-            } else {
-                rvImages.visible()
-                tvEmptyView.gone()
-            }
-        })
-        return adapter
+    }
+
+    private fun showError() {
+        rvImages.gone()
+        tvEmptyView.visible()
+    }
+
+    private fun showData(images: List<Image>) {
+        if (images.isEmpty()) {
+            showError()
+        } else {
+            rvImages.visible()
+            tvEmptyView.gone()
+            adapter.updateImages(images)
+        }
     }
 
     companion object {

@@ -11,31 +11,35 @@ abstract class BaseImagesViewModel<T>(
     private val workerScheduler: Scheduler,
     private val resultScheduler: Scheduler
 ) : ViewModel() {
-    private val data = MutableLiveData<T>()
-    private val progress = MutableLiveData<Boolean>()
+    private val data = MutableLiveData<ViewObject<T>>().apply {
+        value = ViewObject(data = null, progress = false, error = false)
+    }
 
     private val disposables = CompositeDisposable()
 
     protected abstract fun createDataObservable(): Flowable<T>
 
-    fun data(): LiveData<T> = data
-    fun progress(): LiveData<Boolean> = progress
+    fun data(): LiveData<ViewObject<T>> = data
 
     protected fun fetchData() {
-        if (progress.value == true) {
+        val currentData = data.value
+        if (currentData?.progress == true) {
             return
         }
-        progress.value = true
+        data.value = currentData?.copy(progress = true)
         disposables.add(
             createDataObservable()
                 .subscribeOn(workerScheduler)
                 .observeOn(resultScheduler)
                 .subscribe(
                     {
-                        progress.value = false
-                        data.value = it
+                        val currentData = data.value
+                        data.value = currentData?.copy(data = it, progress = false, error = false)
                     },
-                    { it.printStackTrace() }
+                    {
+                        val currentData = data.value
+                        data.value = currentData?.copy(progress = false, error = true)
+                    }
                 ))
     }
 
@@ -43,4 +47,10 @@ abstract class BaseImagesViewModel<T>(
         super.onCleared()
         disposables.clear()
     }
+
+    data class ViewObject<T>(
+        val data: T?,
+        val progress: Boolean,
+        val error: Boolean
+    )
 }

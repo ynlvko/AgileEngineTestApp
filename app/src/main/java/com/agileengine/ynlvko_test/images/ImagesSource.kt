@@ -3,6 +3,7 @@ package com.agileengine.ynlvko_test.images
 import com.agileengine.ynlvko_test.auth.AuthHolder
 import com.agileengine.ynlvko_test.network.ApiInterface
 import io.reactivex.Flowable
+import retrofit2.adapter.rxjava2.HttpException
 
 interface ImagesSource {
     fun getImages(page: Int): Flowable<List<Image>>
@@ -20,10 +21,7 @@ class DefaultImagesSource(
                     .map { it.pictures as List<Image> }
                     .toFlowable()
             }
-            .onErrorResumeNext { t: Throwable ->
-                authHolder.clearToken()
-                getImages(page)
-            }
+            .retry(3, ::retryPredicate)
     }
 
     override fun getImageById(imageId: String): Flowable<Image> {
@@ -31,10 +29,15 @@ class DefaultImagesSource(
             .flatMap { token ->
                 apiInterface.getImageById(getAuthorizationHeader(token), imageId).toFlowable()
             }
-            .onErrorResumeNext { t: Throwable ->
-                authHolder.clearToken()
-                getImageById(imageId)
-            }
+            .retry(retryCount, ::retryPredicate)
+    }
+
+    private fun retryPredicate(t: Throwable): Boolean {
+        if (t is HttpException && t.code() == 401) {
+            authHolder.clearToken()
+            return true
+        }
+        return false
     }
 
     private fun getToken() = if (authHolder.isAuthorized()) {
@@ -44,4 +47,8 @@ class DefaultImagesSource(
     }
 
     private fun getAuthorizationHeader(token: String) = "Bearer $token"
+
+    companion object {
+        private const val retryCount = 3L
+    }
 }

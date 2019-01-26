@@ -12,6 +12,8 @@ import androidx.lifecycle.Observer
 import com.agileengine.ynlvko_test.R
 import com.agileengine.ynlvko_test.core.ServiceLocator
 import com.agileengine.ynlvko_test.images.Image
+import com.agileengine.ynlvko_test.views.gone
+import com.agileengine.ynlvko_test.views.visible
 import com.squareup.picasso.Picasso
 import com.squareup.picasso.Transformation
 import kotlinx.android.synthetic.main.fragment_image_details.*
@@ -35,12 +37,40 @@ class ImageDetailsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.data().observe(this, Observer { image ->
-            this.image = image
-            displayImage()
+        refresh.isEnabled = false
+        viewModel.data().observe(this, Observer { viewObject ->
+            showProgress(viewObject.progress)
+            if (viewObject.error || viewObject.data == null) {
+                showError()
+            } else {
+                showData(viewObject.data)
+            }
         })
         fabShare.setOnClickListener(::share)
         fabFilters.setOnClickListener(::showFiltersPopup)
+    }
+
+    private fun showProgress(progress: Boolean) {
+        refresh.isRefreshing = progress
+        if (progress) {
+            textViews.gone()
+        } else {
+            textViews.visible()
+        }
+    }
+
+    private fun showError() {
+        tvAuthorName.gone()
+        tvCameraName.text = getString(R.string.error)
+        ivImage.setImageResource(0)
+    }
+
+    private fun showData(image: Image) {
+        this.image = image
+        textViews.visible()
+        tvAuthorName.text = image.author ?: ""
+        tvCameraName.text = image.camera ?: ""
+        displayImage()
     }
 
     private fun displayImage() {
@@ -55,19 +85,22 @@ class ImageDetailsFragment : Fragment() {
     }
 
     private fun share(v: View) {
-        val sendIntent: Intent = Intent().apply {
-            action = Intent.ACTION_SEND
-            putExtra(Intent.EXTRA_TEXT, viewModel.data().value?.fullUrl)
-            type = "text/plain"
-        }
-        if (requireActivity().packageManager
-                .resolveActivity(sendIntent, PackageManager.MATCH_DEFAULT_ONLY) != null
-        ) {
-            startActivity(sendIntent)
+        image?.let {
+            val sendIntent: Intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TEXT, image?.fullUrl)
+                type = "text/plain"
+            }
+            if (requireActivity().packageManager
+                    .resolveActivity(sendIntent, PackageManager.MATCH_DEFAULT_ONLY) != null
+            ) {
+                startActivity(sendIntent)
+            }
         }
     }
 
     private fun showFiltersPopup(v: View) {
+        if (image == null) return
         val popupMenu = PopupMenu(requireActivity(), fabFilters)
         val imageFilters = ServiceLocator.getInstance(requireContext()).getImageFilters(requireActivity())
         imageFilters.keys.forEach {

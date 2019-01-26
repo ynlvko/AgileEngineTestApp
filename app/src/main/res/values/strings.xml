@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">Gallery app</string>
-    <string name="message_empty_list">There are no images :(</string>
+    <string name="error">Oops, something went wrong :(</string>
 </resources>
