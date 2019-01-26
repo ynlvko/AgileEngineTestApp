@@ -6,14 +6,20 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.PopupMenu
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import com.agileengine.ynlvko_test.R
+import com.agileengine.ynlvko_test.core.ServiceLocator
+import com.agileengine.ynlvko_test.images.Image
 import com.squareup.picasso.Picasso
+import com.squareup.picasso.Transformation
 import kotlinx.android.synthetic.main.fragment_image_details.*
 
 class ImageDetailsFragment : Fragment() {
     private var imagePosition = -1
+    private var image: Image? = null
+    private var selectedFilter: Transformation? = null
     private lateinit var viewModel: ImageDetailsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,9 +36,22 @@ class ImageDetailsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.data().observe(this, Observer { image ->
-            Picasso.get().load(image.fullUrl).into(ivImage)
+            this.image = image
+            displayImage()
         })
         fabShare.setOnClickListener(::share)
+        fabFilters.setOnClickListener(::showFiltersPopup)
+    }
+
+    private fun displayImage() {
+        image?.let { image ->
+            val picassoRequest = Picasso.get().load(image.fullUrl)
+            val selectedFilter = selectedFilter
+            if (selectedFilter != null) {
+                picassoRequest.transform(selectedFilter)
+            }
+            picassoRequest.into(ivImage)
+        }
     }
 
     private fun share(v: View) {
@@ -46,6 +65,20 @@ class ImageDetailsFragment : Fragment() {
         ) {
             startActivity(sendIntent)
         }
+    }
+
+    private fun showFiltersPopup(v: View) {
+        val popupMenu = PopupMenu(requireActivity(), fabFilters)
+        val imageFilters = ServiceLocator.getInstance(requireContext()).getImageFilters(requireActivity())
+        imageFilters.keys.forEach {
+            popupMenu.menu.add(it)
+        }
+        popupMenu.setOnMenuItemClickListener {
+            selectedFilter = imageFilters[it.title]
+            displayImage()
+            true
+        }
+        popupMenu.show()
     }
 
     companion object {
