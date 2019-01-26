@@ -11,13 +11,12 @@ import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.agileengine.ynlvko_test.Navigator
 import com.agileengine.ynlvko_test.R
-import com.agileengine.ynlvko_test.images.ImagesViewModel
 import com.agileengine.ynlvko_test.views.gone
 import com.agileengine.ynlvko_test.views.visible
 import kotlinx.android.synthetic.main.fragment_image_list.*
 
 class ImageListFragment : Fragment() {
-    private lateinit var viewModel: ImagesViewModel
+    private lateinit var viewModel: ImageListViewModel
     private lateinit var navigator: Navigator
 
     override fun onAttach(context: Context) {
@@ -27,7 +26,7 @@ class ImageListFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ImagesViewModel.getInstance(requireActivity())
+        viewModel = ImageListViewModel.getInstance(requireActivity())
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
